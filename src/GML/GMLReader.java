@@ -2,25 +2,11 @@ package GML;
 
 import java.io.*;
 import java.util.*;
-import java.util.function.Supplier;
 import Graphs.IGraph;
 
 public class GMLReader {
 
-    /**
-     * Reads a GML file and returns an instance of the provided IGraph implementation,
-     * populated with GraphNode objects.
-     *
-     * @param filename      the path to the GML file.
-     * @param graphSupplier a Supplier that provides an instance of an IGraph (e.g., new SimpleGraph<>())
-     * @return an IGraph<GraphNode> populated with the nodes and edges from the file.
-     * @throws IOException if file reading fails.
-     */
-    public static <G extends IGraph<GNode>> G readGML(String filename, Supplier<G> graphSupplier) throws IOException {
-        // Create the graph using the provided supplier.
-        G graph = graphSupplier.get();
-
-        // Map from GML node id (as a string) to the GraphNode object.
+    public static void readGML(String filename, IGraph<GNode> graph) throws IOException {
         Map<String, GNode> idToNode = new HashMap<>();
 
         BufferedReader br = new BufferedReader(new FileReader(filename));
@@ -96,6 +82,5 @@ public class GMLReader {
             }
         }
         br.close();
-        return graph;
     }
 }

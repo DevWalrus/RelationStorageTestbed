@@ -305,7 +305,7 @@ public class Walktrap<T> {
         int size;
         double[] P_c;                      // probability vector (length N)
         Map<Integer, Double> adjComs;        // mapping from adjacent community id to delta sigma
-        Set<Integer> vertices;               // set of vertex indices in this community
+        public Set<Integer> vertices;               // set of vertex indices in this community
         double internalWeight;
         double totalWeight;
 

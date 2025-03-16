@@ -11,11 +11,19 @@ import java.io.*;
 
 public class WalktrapTest {
     public static void main(String[] args) throws IOException {
-        IGraph<GNode> graph = GMLReader.readGML("C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\football.gml", SimpleGraph<GNode>::new);
+
+        IGraph<GNode> graph = new SimpleGraph<>();
+        GMLReader.readGML(
+            "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\football.gml",
+            graph
+        );
 
         Walktrap<GNode> walktrap = new Walktrap<>(graph, 10, true, false);
 
+        long startTime = System.nanoTime();
         Walktrap<GNode>.WalktrapResult result = walktrap.run();
+        long endTime = System.nanoTime();
+        System.out.println(endTime - startTime);
 
         List<Double> mods = result.modularities;
         int bestIndex = 0;

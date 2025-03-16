@@ -1,104 +1,91 @@
+import Algos.Walktrap;
+import GML.GMLReader;
+import GML.GNode;
+import GML.GraphMLExporter;
+import GML.TabImporter;
 import Graphs.IGraph;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class GraphBenchmark {
-    private final IGraph<Integer> graph;
-    private static final Integer NODE_COUNT = 1_000;
-    private static final Integer EDGE_COUNT = 50_000_000;
-    private static final Integer R_LOOKUP_COUNT = 100_000;
-    private static final Integer R_EDGE_LOOKUP_COUNT = 100_000;
-    private static final List<String> RELATIONSHIPS = List.of("FRIEND", "MOTHER", "FATHER", "TEACHER", "PARTNER");
-    private static final int RELATIONSHIPS_LEN = 5;
+    private final IGraph<GNode> graph;
+    private final GraphType type;
+    private static final String GML_LOC = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\com-youtube.ungraph.txt";
 
-    public GraphBenchmark(IGraph<Integer> graph) {
+    public GraphBenchmark(IGraph<GNode> graph, GraphType type) {
         this.graph = graph;
+        this.type = type;
     }
 
     interface SingleTest {
-        void test();
+        void test() throws IOException;
     }
 
-    private long runTimedTest(SingleTest t) {
+    private long runTimedTest(SingleTest t) throws IOException {
         long startTime = System.nanoTime();
         t.test();
         long endTime = System.nanoTime();
         return endTime - startTime;
     }
 
-    public void runBenchmark() {
-        long elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < NODE_COUNT; i++) {
-                graph.addNode(i);
-            }
-        });
+    public void runBenchmark() throws IOException {
+        long elapsedTimeNs = runTimedTest(() -> TabImporter.readGraph(GML_LOC, graph));
 
         System.out.println(outputString(
-                "Node creation",
-                NODE_COUNT,
+                "Read Data",
                 elapsedTimeNs));
 
-        elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < EDGE_COUNT; i++) {
-                int source = (int)(Math.random() * 1000);
-                int target = (int)(Math.random() * 1000);
-                graph.addEdge(RELATIONSHIPS.get(ThreadLocalRandom.current().nextInt(RELATIONSHIPS_LEN)), source, target);
-            }
-        });
+        Walktrap<GNode> walktrap = new Walktrap<>(graph, 10, true, false);
+        AtomicReference<Walktrap<GNode>.WalktrapResult> result = new AtomicReference<>();
+
+        elapsedTimeNs = runTimedTest(() -> result.set(walktrap.run()));
 
         System.out.println(outputString(
-                "Edge creation",
-                EDGE_COUNT,
+                "Run Walktrap",
                 elapsedTimeNs));
 
-        elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < R_LOOKUP_COUNT; i++) {
-                graph.getRandomNode();
+        List<Double> mods = result.get().modularities;
+        int bestIndex = 0;
+        double bestMod = mods.getFirst();
+        for (int i = 1; i < mods.size(); i++) {
+            if (mods.get(i) > bestMod) {
+                bestMod = mods.get(i);
+                bestIndex = i;
             }
-        });
+        }
+        Set<Integer> bestPartition = result.get().partitions.get(bestIndex);
 
-        System.out.println(outputString(
-                "Random Node",
-                R_LOOKUP_COUNT,
-                elapsedTimeNs));
-
-        Integer node = graph.getRandomNode();
-        elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < R_EDGE_LOOKUP_COUNT; i++) {
-                graph.getRandomEdge(node);
+        Map<Integer, Integer> bestAssignment = new HashMap<>();
+        for (Integer commId : bestPartition) {
+            Set<Integer> vertices = result.get().communities.get(commId).vertices;
+            for (Integer v : vertices) {
+                bestAssignment.put(v, commId);
             }
-        });
+        }
 
-        System.out.println(outputString(
-                "Random Edge",
-                R_EDGE_LOOKUP_COUNT,
-                elapsedTimeNs));
-
-        Integer node2 = graph.getRandomNode();
-        String type = RELATIONSHIPS.getFirst();
-        elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < R_EDGE_LOOKUP_COUNT; i++) {
-                graph.getRandomEdge(node2, type);
+        try (PrintWriter pw = new PrintWriter("best_partition_" + type.name() + ".csv")) {
+            pw.println("node,community");
+            for (Map.Entry<Integer, Integer> entry : bestAssignment.entrySet()) {
+                pw.println(entry.getKey() + "," + entry.getValue());
             }
-        });
+        }
 
-        System.out.println(outputString(
-                "Random \""+ RELATIONSHIPS.getFirst() + "\" Edge",
-                R_EDGE_LOOKUP_COUNT,
-                elapsedTimeNs));
+        GraphMLExporter.exportToGraphML(graph, bestAssignment.entrySet(), "football_export_" + type.name() + ".graphml");
     }
 
     private String outputString(
         String title,
-        int iterations,
         long elapsedTimeNs
     ) {
-        return "\tQuery: " +
+        return "\t" +
                 title +
-                " (" +
-                iterations +
-                ") Took: " +
+                " - " +
                 elapsedTimeNs / (long) 1e6 +
                 " ms (" +
                 elapsedTimeNs / (long) 1e9 +

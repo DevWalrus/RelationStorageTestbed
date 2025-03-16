@@ -1,3 +1,4 @@
+import GML.GNode;
 import Graphs.IGraph;
 
 public class Main {
@@ -9,8 +10,8 @@ public class Main {
     }
 
     public static void runBenchmark(GraphType type) {
-        IGraph<Integer> graph = GraphFactory.createGraph(type);
-        GraphBenchmark benchmark = new GraphBenchmark(graph);
+        IGraph<GNode> graph = GraphFactory.createGraph(type);
+        GraphBenchmark benchmark = new GraphBenchmark(graph, type);
         try {
             benchmark.runBenchmark();
         } catch (Exception e) {
