@@ -16,7 +16,9 @@ import java.util.concurrent.atomic.AtomicReference;
 public class GraphBenchmark {
     private final IGraph<GNode> graph;
     private final GraphType type;
-    private static final String GML_LOC = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\com-youtube.ungraph.txt";
+    private static final String GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\com-youtube.ungraph.txt";
+    private static final String DBLP_GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\com-dblp.ungraph.txt";
+    private static final String EU_GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\email-Eu-core.txt";
 
     public GraphBenchmark(IGraph<GNode> graph, GraphType type) {
         this.graph = graph;
@@ -34,21 +36,21 @@ public class GraphBenchmark {
         return endTime - startTime;
     }
 
-    public void runBenchmark() throws IOException {
-        long elapsedTimeNs = runTimedTest(() -> TabImporter.readGraph(GML_LOC, graph));
+    public long runBenchmark() throws IOException {
+        long elapsedTimeNs = runTimedTest(() -> TabImporter.readGraph(EU_GML_LOC, graph, false));
 
-        System.out.println(outputString(
-                "Read Data",
-                elapsedTimeNs));
+//        System.out.println(outputString(
+//                "Read Data",
+//                elapsedTimeNs));
 
         Walktrap<GNode> walktrap = new Walktrap<>(graph, 10, true, false);
         AtomicReference<Walktrap<GNode>.WalktrapResult> result = new AtomicReference<>();
 
         elapsedTimeNs = runTimedTest(() -> result.set(walktrap.run()));
 
-        System.out.println(outputString(
-                "Run Walktrap",
-                elapsedTimeNs));
+//        System.out.println(outputString(
+//                "Run Walktrap",
+//                elapsedTimeNs));
 
         List<Double> mods = result.get().modularities;
         int bestIndex = 0;
@@ -69,14 +71,16 @@ public class GraphBenchmark {
             }
         }
 
-        try (PrintWriter pw = new PrintWriter("best_partition_" + type.name() + ".csv")) {
+        try (PrintWriter pw = new PrintWriter("partition_" + type.name() + ".csv")) {
             pw.println("node,community");
             for (Map.Entry<Integer, Integer> entry : bestAssignment.entrySet()) {
                 pw.println(entry.getKey() + "," + entry.getValue());
             }
         }
 
-        GraphMLExporter.exportToGraphML(graph, bestAssignment.entrySet(), "football_export_" + type.name() + ".graphml");
+        GraphMLExporter.exportToGraphML(graph, bestAssignment.entrySet(), "export_" + type.name() + ".graphml");
+
+        return elapsedTimeNs / (long) 1e9;
     }
 
     private String outputString(

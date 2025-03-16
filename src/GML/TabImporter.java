@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public class TabImporter {
 
-    public static void readGraph(String filename, IGraph<GNode> graph) throws IOException {
+    public static void readGraph(String filename, IGraph<GNode> graph, boolean directed) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String line;
         while ((line = br.readLine()) != null) {
@@ -20,15 +20,16 @@ public class TabImporter {
             // Split the line on whitespace (tabs or spaces)
             String[] tokens = line.split("\\s+");
             if (tokens.length < 2) {
+                System.err.println("Skipping invalid line: " + line);
                 continue; // ignore malformed lines
             }
             try {
                 int fromId = Integer.parseInt(tokens[0]);
                 GNode from = new GNode(fromId, String.valueOf(fromId));
-                int toId = Integer.parseInt(tokens[0]);
+                int toId = Integer.parseInt(tokens[1]);
                 GNode to = new GNode(toId, String.valueOf(toId));
                 graph.addEdge("default", from, to);
-                graph.addEdge("default", to, from);
+                if (directed) graph.addEdge("default", to, from);
             } catch (NumberFormatException e) {
                 System.err.println("Skipping invalid line: " + line);
             }

@@ -1,79 +1,127 @@
 package Graphs;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SimpleGraph<T> implements IGraph<T> {
-    private Set<T> nodes = new HashSet<>();
-    private Map<T, Set<T>> adj = new HashMap<>();
+    // Set of nodes.
+    private final Set<T> nodes = new HashSet<>();
+    // Map from each node to a list of its outgoing Edge objects.
+    private final Map<T, List<Edge<T>>> adj = new HashMap<>();
 
     @Override
     public void addNode(T node) {
         nodes.add(node);
-        if (!adj.containsKey(node)) {
-            adj.put(node, new HashSet<>());
-        }
+        // Create an empty list for new node.
+        adj.putIfAbsent(node, new ArrayList<>());
     }
 
     @Override
     public void removeNode(T node) {
         nodes.remove(node);
         adj.remove(node);
-        for (Set<T> neighbors : adj.values()) {
-            neighbors.remove(node);
+        // Remove any edge in other node's list that points to the removed node.
+        for (List<Edge<T>> edges : adj.values()) {
+            edges.removeIf(edge -> edge.getTarget().equals(node));
         }
     }
 
+    /**
+     * Adds an undirected edge between source and target.
+     * This implementation adds the edge in both directions.
+     */
     @Override
     public void addEdge(String type, T source, T target) {
-        // For an undirected graph, add both directions.
         addNode(source);
         addNode(target);
-        adj.get(source).add(target);
-        adj.get(target).add(source);
+        // Add edge from source to target.
+        adj.get(source).add(new Edge<>(source, target, type));
+        // For undirected graph, also add the reverse edge.
+        adj.get(target).add(new Edge<>(target, source, type));
     }
 
     @Override
     public void removeEdge(String type, T source, T target) {
-        if (adj.containsKey(source)) {
-            adj.get(source).remove(target);
+        List<Edge<T>> sourceEdges = adj.get(source);
+        if (sourceEdges != null) {
+            sourceEdges.removeIf(edge -> edge.getLabel().equals(type) && edge.getTarget().equals(target));
         }
-        if (adj.containsKey(target)) {
-            adj.get(target).remove(source);
+        List<Edge<T>> targetEdges = adj.get(target);
+        if (targetEdges != null) {
+            targetEdges.removeIf(edge -> edge.getLabel().equals(type) && edge.getTarget().equals(source));
         }
     }
 
     @Override
     public Iterable<T> getNeighbors(T node) {
-        return adj.getOrDefault(node, new HashSet<>());
+        List<T> result = new ArrayList<>();
+        List<Edge<T>> edges = adj.get(node);
+        if (edges != null) {
+            for (Edge<T> edge : edges) {
+                result.add(edge.getTarget());
+            }
+        }
+        return result;
     }
 
     @Override
     public Iterable<T> getNeighbors(T node, String type) {
-        return getNeighbors(node);
+        List<T> result = new ArrayList<>();
+        List<Edge<T>> edges = adj.get(node);
+        if (edges != null) {
+            for (Edge<T> edge : edges) {
+                if (edge.getLabel().equals(type)) {
+                    result.add(edge.getTarget());
+                }
+            }
+        }
+        return result;
     }
 
     @Override
     public T getRandomNode() {
-        List<T> list = new ArrayList<>(nodes);
-        return list.get(new Random().nextInt(list.size()));
+        if (nodes.isEmpty()) return null;
+        int randomIndex = ThreadLocalRandom.current().nextInt(nodes.size());
+        return new ArrayList<>(nodes).get(randomIndex);
     }
 
     @Override
     public Edge<T> getRandomEdge(T node) {
-        Iterator<T> it = getNeighbors(node).iterator();
-        if (it.hasNext()) {
-            return new Edge<>(node, it.next());
+        List<Edge<T>> edges = adj.get(node);
+        if (edges == null || edges.isEmpty()) return null;
+        Random rand = ThreadLocalRandom.current();
+        int count = 0;
+        Edge<T> chosenEdge = null;
+        // Reservoir sampling over all edges from node.
+        for (Edge<T> edge : edges) {
+            count++;
+            if (rand.nextInt(count) == 0) {
+                chosenEdge = edge;
+            }
         }
-        return null;
+        return chosenEdge;
     }
 
     @Override
     public Edge<T> getRandomEdge(T node, String type) {
-        return getRandomEdge(node);
+        List<Edge<T>> edges = adj.get(node);
+        if (edges == null || edges.isEmpty()) return null;
+        Random rand = ThreadLocalRandom.current();
+        int count = 0;
+        Edge<T> chosenEdge = null;
+        for (Edge<T> edge : edges) {
+            if (edge.getLabel().equals(type)) {
+                count++;
+                if (rand.nextInt(count) == 0) {
+                    chosenEdge = edge;
+                }
+            }
+        }
+        return chosenEdge;
     }
 
-    // Additional method to expose all nodes.
-    public Set<T> getNodes() {
+    @Override
+    public Iterable<T> getNodes() {
         return nodes;
     }
 }

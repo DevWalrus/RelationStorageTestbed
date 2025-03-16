@@ -3,11 +3,12 @@ package Graphs;
 public class Edge<T> {
     private final T source;
     private final T target;
-    // Optional properties like weight, label, etc.
+    private final String label;
 
-    public Edge(T source, T target) {
+    public Edge(T source, T target, String label) {
         this.source = source;
         this.target = target;
+        this.label = label;
     }
 
     public T getSource() {
@@ -18,11 +19,14 @@ public class Edge<T> {
         return target;
     }
 
+    public String getLabel() {return label;}
+
     @Override
     public String toString() {
         return "Edge{ " +
                 "source=" + source.toString() +
                 ", target=" + target.toString() +
+                ", label=" + label +
                 " }";
     }
 }
