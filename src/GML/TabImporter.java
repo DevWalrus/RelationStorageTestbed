@@ -28,8 +28,8 @@ public class TabImporter {
                 GNode from = new GNode(fromId, String.valueOf(fromId));
                 int toId = Integer.parseInt(tokens[1]);
                 GNode to = new GNode(toId, String.valueOf(toId));
-                graph.addEdge("default", from, to);
-                if (directed) graph.addEdge("default", to, from);
+                graph.addRelationship("default", from, to);
+                if (directed) graph.addRelationship("default", to, from);
             } catch (NumberFormatException e) {
                 System.err.println("Skipping invalid line: " + line);
             }

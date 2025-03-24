@@ -1,5 +1,4 @@
 import Algos.Walktrap;
-import GML.GMLReader;
 import GML.GNode;
 import GML.GraphMLExporter;
 import GML.TabImporter;
@@ -13,14 +12,16 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class GraphBenchmark {
+public class WalktrapBenchmark {
     private final IGraph<GNode> graph;
     private final GraphType type;
-    private static final String GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\com-youtube.ungraph.txt";
-    private static final String DBLP_GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\com-dblp.ungraph.txt";
-    private static final String EU_GML_LOC = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\email-Eu-core.txt";
+//    private static final String BASE_PATH = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\";
+    private static final String BASE_PATH = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\";
+    private static final String GML_LOC = BASE_PATH + "com-youtube.ungraph.txt";
+    private static final String DBLP_GML_LOC = BASE_PATH + "com-dblp.ungraph.txt";
+    private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
 
-    public GraphBenchmark(IGraph<GNode> graph, GraphType type) {
+    public WalktrapBenchmark(IGraph<GNode> graph, GraphType type) {
         this.graph = graph;
         this.type = type;
     }

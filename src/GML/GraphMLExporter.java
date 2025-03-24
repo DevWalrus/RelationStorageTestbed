@@ -58,7 +58,7 @@ public class GraphMLExporter {
         Set<String> seenEdges = new HashSet<>();
         for (GNode source : graph.getNodes()) {
             int sourceId = source.getId();
-            for (GNode target : graph.getNeighbors(source)) {
+            for (GNode target : graph.getRelationships(source)) {
                 int targetId = target.getId();
                 String edgeKey = sourceId <= targetId ? sourceId + "_" + targetId : targetId + "_" + sourceId;
                 if (seenEdges.contains(edgeKey)) continue;

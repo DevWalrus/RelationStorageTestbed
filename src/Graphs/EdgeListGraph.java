@@ -34,22 +34,22 @@ public class EdgeListGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void addEdge(String type, T source, T target) {
+    public void addRelationship(String label, T source, T target) {
         // Ensure both nodes exist.
         addNode(source);
         addNode(target);
-        edges.add(new Edge<>(source, target, type));
+        edges.add(new Edge<>(source, target, label));
     }
 
     @Override
-    public void removeEdge(String type, T source, T target) {
-        edges.removeIf(edge -> edge.getLabel().equals(type) &&
+    public void removeRelationship(String label, T source, T target) {
+        edges.removeIf(edge -> edge.getLabel().equals(label) &&
                 edge.getSource().equals(source) &&
                 edge.getTarget().equals(target));
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node) {
+    public Iterable<T> getRelationships(T node) {
         Set<T> neighbors = new HashSet<>();
         for (Edge<T> edge : edges) {
             // Treat graph as undirected: check both source and target.
@@ -64,10 +64,10 @@ public class EdgeListGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node, String type) {
+    public Iterable<T> getRelationships(T node, String label) {
         Set<T> neighbors = new HashSet<>();
         for (Edge<T> edge : edges) {
-            if (edge.getLabel().equals(type)) {
+            if (edge.getLabel().equals(label)) {
                 if (edge.getSource().equals(node)) {
                     neighbors.add(edge.getTarget());
                 }
@@ -89,7 +89,7 @@ public class EdgeListGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node) {
+    public Edge<T> getRandomRelationship(T node) {
         List<Edge<T>> candidateEdges = new ArrayList<>();
         for (Edge<T> edge : edges) {
             if (edge.getSource().equals(node) || edge.getTarget().equals(node)) {
@@ -103,10 +103,10 @@ public class EdgeListGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node, String type) {
+    public Edge<T> getRandomRelationship(T node, String label) {
         List<Edge<T>> candidateEdges = new ArrayList<>();
         for (Edge<T> edge : edges) {
-            if (edge.getLabel().equals(type) &&
+            if (edge.getLabel().equals(label) &&
                     (edge.getSource().equals(node) || edge.getTarget().equals(node))) {
                 candidateEdges.add(edge);
             }

@@ -76,7 +76,7 @@ public class GMLReader {
                     GNode targetNode = idToNode.get(targetId);
                     // Only add the edge if both nodes were parsed.
                     if (sourceGNode != null && targetNode != null) {
-                        graph.addEdge(edgeLabel != null ? edgeLabel : "default", sourceGNode, targetNode);
+                        graph.addRelationship(edgeLabel != null ? edgeLabel : "default", sourceGNode, targetNode);
                     }
                 }
             }

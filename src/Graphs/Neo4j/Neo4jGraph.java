@@ -40,7 +40,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void addEdge(String label, T source, T target) {
+    public void addRelationship(String label, T source, T target) {
         addNode(source);
         addNode(target);
         Map<String, EdgeList<T>> map = adjList.get(source);
@@ -53,7 +53,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void removeEdge(String label, T source, T target) {
+    public void removeRelationship(String label, T source, T target) {
         Map<String, EdgeList<T>> map = adjList.get(source);
         if (map == null) return;
         EdgeList<T> list = map.get(label);
@@ -66,7 +66,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node) {
+    public Iterable<T> getRelationships(T node) {
         Set<T> neighbors = new HashSet<>();
         Map<String, EdgeList<T>> map = adjList.get(node);
         if (map != null) {
@@ -80,7 +80,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node, String label) {
+    public Iterable<T> getRelationships(T node, String label) {
         Map<String, EdgeList<T>> map = adjList.get(node);
         if (map == null) return Collections.emptyList();
         EdgeList<T> list = map.get(label);
@@ -101,7 +101,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node) {
+    public Edge<T> getRandomRelationship(T node) {
         Map<String, EdgeList<T>> map = adjList.get(node);
         if (map == null) return null;
         Edge<T> chosenEdge = null;
@@ -118,7 +118,7 @@ public class Neo4jGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node, String label) {
+    public Edge<T> getRandomRelationship(T node, String label) {
         Map<String, EdgeList<T>> map = adjList.get(node);
         if (map == null) return null;
         EdgeList<T> list = map.get(label);

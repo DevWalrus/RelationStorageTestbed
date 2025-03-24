@@ -53,7 +53,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void addEdge(String label, T source, T target) {
+    public void addRelationship(String label, T source, T target) {
         if (!nodeIndex.containsKey(source)) addNode(source);
         if (!nodeIndex.containsKey(target)) addNode(target);
         int srcIdx = nodeIndex.get(source);
@@ -63,7 +63,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void removeEdge(String label, T source, T target) {
+    public void removeRelationship(String label, T source, T target) {
         Integer srcIdx = nodeIndex.get(source);
         Integer tgtIdx = nodeIndex.get(target);
         if (srcIdx == null || tgtIdx == null) return;
@@ -71,7 +71,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node) {
+    public Iterable<T> getRelationships(T node) {
         Integer srcIdx = nodeIndex.get(node);
         if (srcIdx == null) return Collections.emptyList();
         List<T> neighbors = new ArrayList<>();
@@ -85,7 +85,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<T> getNeighbors(T node, String label) {
+    public Iterable<T> getRelationships(T node, String label) {
         Integer srcIdx = nodeIndex.get(node);
         if (srcIdx == null) return Collections.emptyList();
         List<T> neighbors = new ArrayList<>();
@@ -110,7 +110,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node) {
+    public Edge<T> getRandomRelationship(T node) {
         Integer srcIdx = nodeIndex.get(node);
         if (srcIdx == null) return null;
         List<Edge<T>> candidateEdges = new ArrayList<>();
@@ -124,7 +124,7 @@ public class AdjMatrixCountGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Edge<T> getRandomEdge(T node, String label) {
+    public Edge<T> getRandomRelationship(T node, String label) {
         Integer srcIdx = nodeIndex.get(node);
         if (srcIdx == null) return null;
         List<Edge<T>> candidateEdges = new ArrayList<>();

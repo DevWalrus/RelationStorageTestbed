@@ -10,22 +10,21 @@ public class Main {
         for (GraphType ty : List.of(
                 GraphType.NEO4J,
                 GraphType.ADJ_MATRIX,
-                GraphType.ADJ_CNT_MATRIX,
-                GraphType.EDGE_LIST,
-                GraphType.SIMPLE
+                GraphType.SIMPLE,
+//                GraphType.ADJ_CNT_MATRIX,
+                GraphType.EDGE_LIST
         )) {
-            long avg = 0;
             for (int i = 0; i < RUN_CNT; i++) {
-//                System.out.println(ty.name() + " (" + i + "):");
-                avg += runBenchmark(ty);
+                System.out.println(ty.name() + " (" + i + "):");
+                runBenchmark(ty);
             }
-            System.out.println(ty.name() + ":\n\tAverage Walktrap - " + avg / RUN_CNT + "s");
         }
     }
 
     public static long runBenchmark(GraphType type) {
         IGraph<GNode> graph = GraphFactory.createGraph(type);
-        GraphBenchmark benchmark = new GraphBenchmark(graph, type);
+//        WalktrapBenchmark benchmark = new WalktrapBenchmark(graph, type);
+        QueryBenchmark benchmark = new QueryBenchmark(graph, type);
         try {
             return benchmark.runBenchmark();
         } catch (Exception e) {
