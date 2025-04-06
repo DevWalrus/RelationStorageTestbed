@@ -1,5 +1,6 @@
 package GML;
 
+import Exceptions.InvalidNodeAccessException;
 import Graphs.IGraph;
 
 import java.io.BufferedReader;
@@ -8,7 +9,7 @@ import java.io.IOException;
 
 public class TabImporter {
 
-    public static void readGraph(String filename, IGraph<GNode> graph, boolean directed) throws IOException {
+    public static void readGraph(String filename, IGraph<Integer> graph, boolean directed) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         String line;
         while ((line = br.readLine()) != null) {
@@ -25,13 +26,15 @@ public class TabImporter {
             }
             try {
                 int fromId = Integer.parseInt(tokens[0]);
-                GNode from = new GNode(fromId, String.valueOf(fromId));
                 int toId = Integer.parseInt(tokens[1]);
-                GNode to = new GNode(toId, String.valueOf(toId));
-                graph.addRelationship("default", from, to);
-                if (directed) graph.addRelationship("default", to, from);
+                graph.addNode(fromId);
+                graph.addNode(toId);
+                graph.addRelationship("default", fromId, toId);
+                if (!directed) graph.addRelationship("default", fromId, toId);
             } catch (NumberFormatException e) {
                 System.err.println("Skipping invalid line: " + line);
+            } catch (InvalidNodeAccessException e) {
+                throw new RuntimeException(e);
             }
         }
         br.close();

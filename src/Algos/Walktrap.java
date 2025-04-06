@@ -1,6 +1,10 @@
 package Algos;
 
+import Exceptions.InvalidNodeAccessException;
+import Graphs.Edge;
 import Graphs.IGraph;
+
+import java.io.IOException;
 import java.util.*;
 import java.util.Arrays;
 
@@ -29,7 +33,7 @@ public class Walktrap<T> {
         this.verbose = verbose;
     }
 
-    public WalktrapResult run() {
+    public WalktrapResult run() throws InvalidNodeAccessException, IOException {
         if (addSelfEdges) {
             for (T v : graph.getNodes()) {
                 graph.addRelationship("self", v, v);
@@ -49,8 +53,8 @@ public class Walktrap<T> {
         A = new double[N][N];
         for (T u : nodes) {
             int i = nodeToIndex.get(u);
-            for (T v : graph.getRelationships(u)) {
-                int j = nodeToIndex.get(v);
+            for (Edge<T> v : graph.getRelationships(u)) {
+                int j = nodeToIndex.get(v.getTarget());
                 A[i][j] = 1.0;
             }
         }

@@ -1,4 +1,5 @@
 import Algos.Walktrap;
+import Exceptions.InvalidNodeAccessException;
 import GML.GNode;
 import GML.GraphMLExporter;
 import GML.TabImporter;
@@ -13,7 +14,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class WalktrapBenchmark {
-    private final IGraph<GNode> graph;
+    private final IGraph<Integer> graph;
     private final GraphType type;
 //    private static final String BASE_PATH = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\";
     private static final String BASE_PATH = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\";
@@ -21,31 +22,31 @@ public class WalktrapBenchmark {
     private static final String DBLP_GML_LOC = BASE_PATH + "com-dblp.ungraph.txt";
     private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
 
-    public WalktrapBenchmark(IGraph<GNode> graph, GraphType type) {
+    public WalktrapBenchmark(IGraph<Integer> graph, GraphType type) {
         this.graph = graph;
         this.type = type;
     }
 
     interface SingleTest {
-        void test() throws IOException;
+        void test() throws IOException, InvalidNodeAccessException;
     }
 
-    private long runTimedTest(SingleTest t) throws IOException {
+    private long runTimedTest(SingleTest t) throws IOException, InvalidNodeAccessException {
         long startTime = System.nanoTime();
         t.test();
         long endTime = System.nanoTime();
         return endTime - startTime;
     }
 
-    public long runBenchmark() throws IOException {
+    public long runBenchmark() throws IOException, InvalidNodeAccessException {
         long elapsedTimeNs = runTimedTest(() -> TabImporter.readGraph(EU_GML_LOC, graph, false));
 
 //        System.out.println(outputString(
 //                "Read Data",
 //                elapsedTimeNs));
 
-        Walktrap<GNode> walktrap = new Walktrap<>(graph, 10, true, false);
-        AtomicReference<Walktrap<GNode>.WalktrapResult> result = new AtomicReference<>();
+        var walktrap = new Walktrap<>(graph, 10, true, false);
+        AtomicReference<Walktrap<Integer>.WalktrapResult> result = new AtomicReference<>();
 
         elapsedTimeNs = runTimedTest(() -> result.set(walktrap.run()));
 

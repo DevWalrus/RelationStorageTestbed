@@ -1,4 +1,4 @@
-package Graphs.Neo4j;
+package Graphs.Memory.Neo4j;
 
 import Graphs.Edge;
 

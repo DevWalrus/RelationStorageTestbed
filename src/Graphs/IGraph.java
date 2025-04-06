@@ -1,11 +1,15 @@
 package Graphs;
 
+import Exceptions.InvalidNodeAccessException;
+
+import java.io.IOException;
+
 /**
  * Interface representing a generic graph.
  *
  * @param <T> the type of nodes in the graph.
  */
-public interface IGraph<T> {
+public interface IGraph<T> extends AutoCloseable {
 
     /**
      * Returns all nodes in the graph.
@@ -19,14 +23,8 @@ public interface IGraph<T> {
      *
      * @param node the node to add.
      */
-    void addNode(T node);
+    void addNode(T node) throws IOException;
 
-    /**
-     * Removes a node from the graph.
-     *
-     * @param node the node to remove.
-     */
-    void removeNode(T node);
 
     /**
      * Adds an edge of the specified label between source and target nodes.
@@ -35,16 +33,8 @@ public interface IGraph<T> {
      * @param source the source node.
      * @param target the target node.
      */
-    void addRelationship(String label, T source, T target);
+    void addRelationship(String label, T source, T target) throws InvalidNodeAccessException, IOException;
 
-    /**
-     * Removes an edge of the specified label between source and target nodes.
-     *
-     * @param label   the label of the edge.
-     * @param source the source node.
-     * @param target the target node.
-     */
-    void removeRelationship(String label, T source, T target);
 
     /**
      * Returns all neighboring nodes of the given node.
@@ -52,23 +42,15 @@ public interface IGraph<T> {
      * @param node the node whose neighbors are to be returned.
      * @return an iterable of neighboring nodes.
      */
-    Iterable<T> getRelationships(T node);
+    Iterable<Edge<T>> getRelationships(T node) throws InvalidNodeAccessException, IOException;
 
-    /**
-     * Returns neighboring nodes of the given node filtered by edge label.
-     *
-     * @param node the node whose neighbors are to be returned.
-     * @param label the edge label to filter neighbors.
-     * @return an iterable of neighboring nodes connected via edges of the specified label.
-     */
-    Iterable<T> getRelationships(T node, String label);
 
     /**
      * Returns a random node from the graph.
      *
      * @return a random node, or null if the graph is empty.
      */
-    T getRandomNode();
+    T getRandomNode() throws IOException;
 
     /**
      * Returns a random edge from the specified node.
@@ -76,14 +58,11 @@ public interface IGraph<T> {
      * @param node the node from which to select an edge.
      * @return a random edge, or null if there are no edges.
      */
-    Edge<T> getRandomRelationship(T node);
+    Edge<T> getRandomRelationship(T node) throws InvalidNodeAccessException, IOException;
 
     /**
-     * Returns a random edge of the specified label from the given node.
-     *
-     * @param node the node from which to select an edge.
-     * @param label the label of the edge to select.
-     * @return a random edge of the specified label, or null if none exists.
+     * Clear all the data from the graph.
      */
-    Edge<T> getRandomRelationship(T node, String label);
+    void clear() throws IOException;
+
 }

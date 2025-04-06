@@ -1,27 +1,27 @@
 package Algos;
 
+import Exceptions.InvalidNodeAccessException;
 import GML.GMLReader;
-import GML.GNode;
 import GML.GraphMLExporter;
 import Graphs.IGraph;
-import Graphs.SimpleGraph;
+import Graphs.Memory.SimpleGraph;
 
 import java.util.*;
 import java.io.*;
 
 public class WalktrapTest {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InvalidNodeAccessException {
 
-        IGraph<GNode> graph = new SimpleGraph<>();
+        IGraph<Integer> graph = new SimpleGraph<>();
         GMLReader.readGML(
             "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\football.gml",
             graph
         );
 
-        Walktrap<GNode> walktrap = new Walktrap<>(graph, 10, true, false);
+        var walktrap = new Walktrap<>(graph, 10, true, false);
 
         long startTime = System.nanoTime();
-        Walktrap<GNode>.WalktrapResult result = walktrap.run();
+        var result = walktrap.run();
         long endTime = System.nanoTime();
         System.out.println(endTime - startTime);
 

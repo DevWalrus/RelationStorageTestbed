@@ -1,5 +1,6 @@
 package GML;
 
+import Exceptions.InvalidNodeAccessException;
 import Graphs.IGraph;
 
 import java.io.FileWriter;
@@ -19,7 +20,7 @@ public class GraphMLExporter {
      * @param filename       The output filename.
      * @throws IOException   If an I/O error occurs.
      */
-    public static void exportToGraphML(IGraph<GNode> graph, Set<Map.Entry<Integer, Integer>> bestAssignments, String filename) throws IOException {
+    public static void exportToGraphML(IGraph<Integer> graph, Set<Map.Entry<Integer, Integer>> bestAssignments, String filename) throws IOException, InvalidNodeAccessException {
         PrintWriter pw = new PrintWriter(new FileWriter(filename));
 
         // Write GraphML header.
@@ -56,10 +57,9 @@ public class GraphMLExporter {
         // Write edges.
         // Since IGraph does not provide a method for all edges, iterate over nodes and their neighbors.
         Set<String> seenEdges = new HashSet<>();
-        for (GNode source : graph.getNodes()) {
-            int sourceId = source.getId();
-            for (GNode target : graph.getRelationships(source)) {
-                int targetId = target.getId();
+        for (var sourceId : graph.getNodes()) {
+            for (var target : graph.getRelationships(sourceId)) {
+                int targetId = target.getTarget();
                 String edgeKey = sourceId <= targetId ? sourceId + "_" + targetId : targetId + "_" + sourceId;
                 if (seenEdges.contains(edgeKey)) continue;
                 seenEdges.add(edgeKey);

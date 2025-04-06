@@ -1,71 +1,135 @@
 import Algos.Walktrap;
+import Exceptions.InvalidNodeAccessException;
 import GML.GNode;
 import GML.GraphMLExporter;
 import GML.TabImporter;
 import Graphs.IGraph;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class QueryBenchmark {
-    private final IGraph<GNode> graph;
+    private final IGraph<Integer> graph;
     private final GraphType type;
 //    private static final String BASE_PATH = "C:\\Users\\clint\\OneDrive\\Documents\\Courses\\Capstone\\RelationStorageTestbed\\datasets\\";
     private static final String BASE_PATH = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\";
     private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
+    private static final String EU_OUT_DEG_LOC = BASE_PATH + "email-Eu-core.outdeg.txt";
+    private static final String EU_OUT_DEG_TIMES_LOC = BASE_PATH + "email-Eu-core.outdeg.times.txt";
 
-    public static final int R_NODE_CNT = 10_000_000;
-    public static final int R_EDGE_CNT = 10_000_000;
+    public static final int R_NODE_CNT = 10_000;
+    public static final int R_EDGE_CNT = 10_000;
 
-    public QueryBenchmark(IGraph<GNode> graph, GraphType type) {
+    public static final int R_PER_NODE = 50;
+
+    private final List<Integer> sortedOutDegrees;
+
+    private final HashMap<Integer, Long> sortedOutDegreesTimes = new HashMap<>();
+
+    public QueryBenchmark(IGraph<Integer> graph, GraphType type) {
         this.graph = graph;
         this.type = type;
+        sortedOutDegrees = loadSortedDegrees();
     }
+
+    public static List<Integer> loadSortedDegrees() {
+        var sortedDegrees = new ArrayList<Integer>();
+        try (BufferedReader br = new BufferedReader(new FileReader(EU_OUT_DEG_LOC))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                sortedDegrees.add(Integer.parseInt(line));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return sortedDegrees;
+    }
+
 
     interface SingleTest {
-        void test() throws IOException;
+        void test() throws Exception;
     }
 
-    private long runTimedTest(SingleTest t) throws IOException {
+    private long runTimedTest(SingleTest t) throws Exception {
         long startTime = System.nanoTime();
         t.test();
         long endTime = System.nanoTime();
         return endTime - startTime;
     }
 
-    public long runBenchmark() throws IOException {
-        TabImporter.readGraph(EU_GML_LOC, graph, false);
+    private long runTimedTest(SingleTest t, String testName, int iterations) throws Exception {
+        long startTime = System.nanoTime();
+        t.test();
+        long endTime = System.nanoTime();
+        long elapsedTime = endTime - startTime;
 
-        long elapsedTimeNs = runTimedTest(() -> {
+        System.out.println(outputString(
+            testName,
+            iterations,
+            elapsedTime));
+        return elapsedTime;
+    }
+
+    public long runBenchmark() throws Exception {
+        return runBenchmark(true);
+    }
+
+    public long runBenchmark(boolean load) throws Exception {
+        if (load) {
+            graph.clear();
+            runTimedTest(
+                () -> TabImporter.readGraph(EU_GML_LOC, graph, false),
+                "Import",
+                1
+            );
+        }
+
+        runTimedTest(() -> {
             for (int i = 0; i < R_NODE_CNT; i++) {
                 graph.getRandomNode();
             }
-        });
+        }, "Random Nodes", R_NODE_CNT);
 
-        System.out.println(outputString(
-                "Random Nodes",
-                R_NODE_CNT,
-                elapsedTimeNs));
+        sortedOutDegreesTimes.clear();
+        for (var node : sortedOutDegrees) {
+            var totalTime = runTimedTest(() -> {
+                for (int i = 0; i < R_PER_NODE; i++) {
+                    graph.getRandomRelationship(node);
+                }
+            });
+            sortedOutDegreesTimes.put(node, totalTime / R_PER_NODE);
+        }
 
-        GNode node = graph.getRandomNode();
-
-        elapsedTimeNs = runTimedTest(() -> {
-            for (int i = 0; i < R_EDGE_CNT; i++) {
-                graph.getRandomRelationship(node);
+        try (PrintWriter writer = new PrintWriter(new FileWriter(EU_OUT_DEG_TIMES_LOC, true))) {
+            writer.println(type.name());
+            for (var node : sortedOutDegrees) {
+                writer.println(sortedOutDegreesTimes.get(node));
             }
-        });
+        }
 
-        System.out.println(outputString(
-                "Random Edges",
-                R_EDGE_CNT,
-                elapsedTimeNs));
+//        var node = graph.getRandomNode();
+
+//        runTimedTest(() -> {
+//            for (int i = 0; i < R_EDGE_CNT; i++) {
+//                graph.getRandomRelationship(node);
+//            }
+//        }, "Random Edges", R_EDGE_CNT);
 
         return 0;
+    }
+
+    private String outputString(
+            String title,
+            long elapsedTimeNs
+    ) {
+        return "\tQuery: " +
+                title +
+                " Took: " +
+                elapsedTimeNs / (long) 1e6 +
+                " ms (" +
+                elapsedTimeNs / (long) 1e9 +
+                "s)";
     }
 
     private String outputString(
