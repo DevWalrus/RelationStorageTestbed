@@ -180,7 +180,7 @@ for test_name_key, times in disk_tests.items():
 if not poster:
     handles1, labels1 = ax2.get_legend_handles_labels()
     handles2, labels2 = ax2_twin.get_legend_handles_labels()
-    ax2.legend(handles1 + handles2, labels1 + labels2)
+    ax2.legend(handles1 + handles2, labels1 + labels2, loc="lower left", framealpha=0.7)
 ax2_twin.set_ylabel("Test Times (nanoseconds)")
 ax2_twin.set_yscale("log")
 ax2_twin.set_ylim(bottom=50)
