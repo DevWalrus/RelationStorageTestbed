@@ -1,15 +1,43 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import sys
 
-OUT_DEG = r"C:\Users\Clinten\Documents\Courses\2245\Capstone\RelationStorageTestbed\datasets\email-Eu-core.outdeg.full.txt"
-TEST_RESULTS = r"C:\Users\Clinten\Documents\Courses\2245\Capstone\RelationStorageTestbed\datasets\email-Eu-core.outdeg.times.txt"
+# ----- Set Global Font Size -----
+plt.rcParams.update({'font.size': 30})  # Ensures a large font for all text elements
+
+def generate_file_paths(test_name):
+    """
+    Generates file paths for the out-degree and test results files based on the given test name.
+    
+    Parameters:
+        test_name (str): The identifier for the test (e.g., "com-dblp.ungraph").
+        
+    Returns:
+        tuple: (out_deg_path, test_results_path)
+    """
+    base_dir = r"C:\Users\Clinten\Documents\Courses\2245\Capstone\RelationStorageTestbed\datasets"
+    out_deg_path = os.path.join(base_dir, f"{test_name}.outdeg.full.txt")
+    test_results_path = os.path.join(base_dir, f"{test_name}.outdeg.times.txt")
+    return out_deg_path, test_results_path
+
+# Get test name from command line arguments if provided; otherwise use a default
+if len(sys.argv) > 1:
+    test_name = sys.argv[1]
+else:
+    test_name = "com-dblp.ungraph"  # Default test name
+
+# Generate file paths using the provided test name
+OUT_DEG, TEST_RESULTS = generate_file_paths(test_name)
 
 def smooth(data, window_size=10):
-    # Simple moving average smoothing using convolution
+    """Simple moving average smoothing using convolution."""
     window = np.ones(window_size) / window_size
     return np.convolve(data, window, mode='same')
 
-# --- Parse out degree file ---
+# -------------------------
+# Data Parsing (unchanged)
+# -------------------------
 ids = []
 out_degrees = []
 
@@ -25,9 +53,7 @@ with open(OUT_DEG, "r") as f:
         except ValueError:
             print(f"Warning: could not convert {degree_part.strip()} to integer.")
 
-# --- Parse test results file with multiple runs per test ---
-# We'll store the runs in a dictionary: for each test name, we store a list of runs.
-# Each run is a list of times (one per id).
+# Parse test results file with multiple runs per test
 test_results = {}
 current_test = None
 current_run = []
@@ -43,109 +69,104 @@ with open(TEST_RESULTS, "r") as f:
             else:
                 current_run.append(int(line))
         else:
-            # When a new test name is encountered, store the previous run (if any)
             if current_test is not None and current_run:
                 test_results.setdefault(current_test, []).append(current_run)
                 current_run = []
             current_test = line
-    # Store the final run
     if current_test is not None and current_run:
         test_results.setdefault(current_test, []).append(current_run)
 
-for test_name in list(test_results.keys()):
-    if not "DISK" in test_name:
-        filtered_runs = [run for run in test_results[test_name] if max(run) <= 50000]
+# Filter and average test results as before
+for test_name_key in list(test_results.keys()):
+    if not test_name_key.endswith('_'):
+        filtered_runs = [run for run in test_results[test_name_key] if max(run) <= 50000]
         if not filtered_runs:
-            print(f"Warning: All runs for non _DISK test '{test_name}' were filtered out due to values over 50k.")
-        test_results[test_name] = filtered_runs
+            print(f"Warning: All runs for non _DISK test '{test_name_key}' were filtered out due to values over 50k.")
+        test_results[test_name_key] = filtered_runs
 
-# --- Average the test times across multiple runs for each test ---
 averaged_test_results = {}
-for test_name, runs in test_results.items():
+for test_name_key, runs in test_results.items():
     if not runs:
-        # Skip tests with no valid runs
         continue
-    # If there is more than one run, skip the first run
-    if len(runs) > 1:
-        runs_to_average = runs[1:]
-    else:
-        runs_to_average = runs
-    # Optionally warn if any run length doesn't match the number of ids
+    # If more than one run exists, skip the first one
+    runs_to_average = runs[1:] if len(runs) > 1 else runs
     for run in runs_to_average:
         if len(run) != len(ids):
-            print(f"Warning: a run for test '{test_name}' has {len(run)} entries; expected {len(ids)}.")
-    runs_array = np.array(runs_to_average)  # shape: (num_runs, num_ids)
-    averaged = np.mean(runs_array, axis=0)  # average across runs per id
-    averaged_test_results[test_name] = averaged
+            print(f"Warning: a run for test '{test_name_key}' has {len(run)} entries; expected {len(ids)}.")
+    runs_array = np.array(runs_to_average)
+    averaged = np.mean(runs_array, axis=0)
+    averaged_test_results[test_name_key] = averaged
 
 # Separate tests into two groups: non _DISK and _DISK
 non_disk_tests = {}
 disk_tests = {}
 
-for test_name, times in averaged_test_results.items():
-    if "DISK" in test_name:
-        disk_tests[test_name] = times
+for test_name_key, times in averaged_test_results.items():
+    if test_name_key.endswith('_'):
+        disk_tests[test_name_key[:-1]] = times
     else:
-        non_disk_tests[test_name] = times
+        non_disk_tests[test_name_key] = times
 
-# --- Plotting ---
 x = list(range(len(ids)))  # x positions corresponding to each id
 
-# Create two subplots: left for non _DISK tests, right for _DISK tests
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+# -------------------------
+# Define Color Mapping for Test Series
+# -------------------------
+color_map = {
+    "Neo4j": "blue",
+    "Adjacency Matrix": "orange",
+    "Edge List": "red",
+    "Adjacency List": "green"
+}
+default_color = "black"  # default color if test name doesn't match
 
-# For non _DISK tests:
-# Create twin axis for test times
+# ----------------------
+# Figure 1: Non _DISK Tests (Normal Scale)
+# ----------------------
+fig1, ax1 = plt.subplots(figsize=(12, 8))
 ax1_twin = ax1.twinx()
 
-# Plot out degrees on ax1 (left y-axis)
-ax1.bar(x, out_degrees, color="lightblue", label="Out Degree")
+# Plot out degrees on left y-axis
+ax1.bar(x, out_degrees, color="lightblue")
 ax1.set_ylabel("Out Degree")
 ax1.set_ylim(bottom=0)
 ax1.set_xticks([])
 
-# Plot smoothed averaged test results on ax1_twin (right y-axis)
+# Plot smoothed averaged test results on right y-axis using the color mapping
 window_size = 10  # adjust smoothing window size as needed
-for test_name, times in non_disk_tests.items():
-    if test_name == "EDGE_LIST":
-        continue
+for test_name_key, times in non_disk_tests.items():
     smoothed_times = smooth(times, window_size=window_size)
-    ax1_twin.plot(x, smoothed_times, label=test_name)
+    color = color_map.get(test_name_key, default_color)
+    ax1_twin.plot(x, smoothed_times, color=color)
 ax1_twin.set_ylabel("Test Times (nanoseconds)")
 ax1_twin.set_ylim(bottom=0)
-ax1.set_title("Non _DISK Tests")
-ax1.set_xlabel("Index (id values not displayed)")
 
-# Combine legends for the non _DISK subplot
-lines1, labels1 = ax1.get_legend_handles_labels()
-lines1_twin, labels1_twin = ax1_twin.get_legend_handles_labels()
-ax1.legend(lines1 + lines1_twin, labels1 + labels1_twin, loc="upper left")
+fig1.savefig("non_disk_tests.png", dpi=900, bbox_inches='tight', pad_inches=0)
 
-# For _DISK tests:
-# Create twin axis for test times
+# ----------------------
+# Figure 2: _DISK Tests (Log Scale)
+# ----------------------
+fig2, ax2 = plt.subplots(figsize=(12, 8))
 ax2_twin = ax2.twinx()
 
-# Plot out degrees on ax2 (left y-axis)
-ax2.bar(x, out_degrees, color="lightblue", label="Out Degree")
+# Plot out degrees on left y-axis
+ax2.bar(x, out_degrees, color="lightblue")
 ax2.set_ylabel("Out Degree")
 ax2.set_ylim(bottom=0)
 ax2.set_xticks([])
 
-window_size = 1  # adjust smoothing window size as needed
-# Plot smoothed averaged test results on ax2_twin (right y-axis)
-for test_name, times in disk_tests.items():
+# Plot smoothed averaged test results (log scale) using the same color mapping
+window_size = 1  # adjust smoothing window size as needed for _DISK tests
+for test_name_key, times in disk_tests.items():
     smoothed_times = smooth(times, window_size=window_size)
-    ax2_twin.plot(x, smoothed_times, label=test_name)
+    color = color_map.get(test_name_key, default_color)
+    ax2_twin.plot(x, smoothed_times, color=color)
 ax2_twin.set_ylabel("Test Times (nanoseconds)")
-ax2_twin.set_ylim(bottom=0)
-ax2.set_title("_DISK Tests")
-ax2.set_xlabel("Index (id values not displayed)")
+# Uncomment the following line if you wish to set the y-axis to a logarithmic scale:
+ax2_twin.set_yscale("log")
+ax2_twin.set_ylim(bottom=50)
 
-# Combine legends for the _DISK subplot
-lines2, labels2 = ax2.get_legend_handles_labels()
-lines2_twin, labels2_twin = ax2_twin.get_legend_handles_labels()
-ax2.legend(lines2 + lines2_twin, labels2 + labels2_twin, loc="upper left")
+fig2.savefig("disk_tests.png", dpi=900, bbox_inches='tight', pad_inches=0)
 
-fig.suptitle("Out Degree and Smoothed Averaged Test Times")
-plt.tight_layout()
+# Finally, display both figures (if desired)
 plt.show()

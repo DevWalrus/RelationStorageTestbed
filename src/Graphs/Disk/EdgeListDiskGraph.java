@@ -7,6 +7,7 @@ import Graphs.Edge;
 import Graphs.IGraph;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -61,26 +62,20 @@ public class EdgeListDiskGraph implements IGraph<Integer>, AutoCloseable {
         edgesRaf.seekTheEnd();
         edgesRaf.writeInt(source);
         edgesRaf.writeInt(target);
-        edgesRaf.writeUTF(label);
         edgesRaf.incCount();
     }
 
     @Override
-    public Iterable<Edge<Integer>> getRelationships(Integer node) {
-        return () -> {
-            try {
-                return new EdgeListRelationshipIterator(node, edgesRaf);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+    public Iterator<Edge<Integer>> getRelationships(Integer node) throws IOException {
+        return new EdgeListRelationshipIterator(node, edgesRaf);
     }
 
     @Override
-    public Edge<Integer> getRandomRelationship(Integer node) {
+    public Edge<Integer> getRandomRelationship(Integer node) throws IOException {
         int count = 0;
         Edge<Integer> chosenEdge = null;
-        for (Edge<Integer> edge : getRelationships(node)) {
+        for (Iterator<Edge<Integer>> it = getRelationships(node); it.hasNext(); ) {
+            Edge<Integer> edge = it.next();
             count++;
             if (rand.nextInt(count) == 0) {
                 chosenEdge = edge;
@@ -90,14 +85,8 @@ public class EdgeListDiskGraph implements IGraph<Integer>, AutoCloseable {
     }
 
     @Override
-    public Iterable<Integer> getNodes() {
-        return () -> {
-            try {
-                return new EdgeListNodeIterator(nodesRaf);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        };
+    public Iterator<Integer> getNodes() throws IOException {
+        return new EdgeListNodeIterator(nodesRaf);
     }
 
     @Override

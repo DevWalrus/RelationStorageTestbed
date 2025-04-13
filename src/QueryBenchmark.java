@@ -3,6 +3,7 @@ import Exceptions.InvalidNodeAccessException;
 import GML.GNode;
 import GML.GraphMLExporter;
 import GML.TabImporter;
+import Graphs.Edge;
 import Graphs.IGraph;
 
 import java.io.*;
@@ -17,7 +18,12 @@ public class QueryBenchmark {
     private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
     private static final String EU_OUT_DEG_LOC = BASE_PATH + "email-Eu-core.outdeg.txt";
     private static final String EU_OUT_DEG_TIMES_LOC = BASE_PATH + "email-Eu-core.outdeg.times.txt";
-
+//    private static final String EU_GML_LOC = BASE_PATH + "test-ds.txt";
+//    private static final String EU_OUT_DEG_LOC = BASE_PATH + "test-ds.outdeg.txt";
+//    private static final String EU_OUT_DEG_TIMES_LOC = BASE_PATH + "test-ds.outdeg.times.txt";
+//    private static final String EU_GML_LOC = BASE_PATH + "com-dblp.ungraph.txt";
+//    private static final String EU_OUT_DEG_LOC = BASE_PATH + "com-dblp.ungraph.outdeg.txt";
+//    private static final String EU_OUT_DEG_TIMES_LOC = BASE_PATH + "com-dblp.ungraph.outdeg.times.txt";
     public static final int R_NODE_CNT = 10_000;
     public static final int R_EDGE_CNT = 10_000;
 
@@ -58,11 +64,17 @@ public class QueryBenchmark {
         return endTime - startTime;
     }
 
+    private long runTimedTest(SingleTest t, String testName) throws Exception {
+        long elapsedTime = runTimedTest(t);
+
+        System.out.println(outputString(
+                testName,
+                elapsedTime));
+        return elapsedTime;
+    }
+
     private long runTimedTest(SingleTest t, String testName, int iterations) throws Exception {
-        long startTime = System.nanoTime();
-        t.test();
-        long endTime = System.nanoTime();
-        long elapsedTime = endTime - startTime;
+        long elapsedTime = runTimedTest(t);
 
         System.out.println(outputString(
             testName,
@@ -80,8 +92,7 @@ public class QueryBenchmark {
             graph.clear();
             runTimedTest(
                 () -> TabImporter.readGraph(EU_GML_LOC, graph, false),
-                "Import",
-                1
+                "Import"
             );
         }
 
@@ -94,15 +105,20 @@ public class QueryBenchmark {
         sortedOutDegreesTimes.clear();
         for (var node : sortedOutDegrees) {
             var totalTime = runTimedTest(() -> {
-                for (int i = 0; i < R_PER_NODE; i++) {
-                    graph.getRandomRelationship(node);
-                }
+                graph.getRandomRelationship(node);
+
+//                System.out.printf("%s: ", node.toString());
+//                for (Iterator<Edge<Integer>> it = graph.getRelationships(node); it.hasNext(); ) {
+//                    Edge<Integer> edge_i = it.next();
+//                    System.out.printf("%s, ", edge_i.getTarget().toString());
+//                }
+//                System.out.println();
             });
             sortedOutDegreesTimes.put(node, totalTime / R_PER_NODE);
         }
 
         try (PrintWriter writer = new PrintWriter(new FileWriter(EU_OUT_DEG_TIMES_LOC, true))) {
-            writer.println(type.name());
+            writer.println(type.name + (type.usesDisk ? "_" : ""));
             for (var node : sortedOutDegrees) {
                 writer.println(sortedOutDegreesTimes.get(node));
             }

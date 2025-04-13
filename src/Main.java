@@ -3,7 +3,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class Main {
-    private static final int RUN_CNT = 10;
+    private static final int RUN_CNT = 5;
     private static final String DIR_PATH = "C:\\Benchmark\\";
     private static final String NODES_NAME = "nodes.dat";
     private static final String EDGES_NAME = "edges.dat";
@@ -15,6 +15,7 @@ public class Main {
                 GraphType.ADJ_MATRIX,
                 GraphType.SIMPLE,
                 GraphType.EDGE_LIST,
+                GraphType.NEO4J_DISK,
                 GraphType.LINKED_LIST_DISK,
                 GraphType.EDGE_LIST_DISK
         )) {
@@ -25,7 +26,7 @@ public class Main {
         }
     }
 
-    public static long runDiskBenchmark(
+    public static void runDiskBenchmark(
         GraphType type,
         String directoryPath,
         String nodesFileName,
@@ -38,13 +39,13 @@ public class Main {
 
         try (var graph = GraphFactory.createGraph(type, directoryPath, nodeOutputName, edgeOutputName)) {
             QueryBenchmark benchmark = new QueryBenchmark(graph, type);
-            return benchmark.runBenchmark(!type.usesDisk);
+//            return benchmark.runBenchmark(!type.usesDisk);
+            benchmark.runBenchmark(true);
         } catch (Exception e) {
             System.out.flush();
             System.out.println("\tTest failed due to: " + e.getMessage());
         }
 //        if (!nodeFile.delete()) System.out.println("\tFailed to delete " + nodeFile.getAbsolutePath());
 //        if (!edgeFile.delete()) System.out.println("\tFailed to delete " + edgeFile.getAbsolutePath());
-        return 0;
     }
 }

@@ -4,7 +4,7 @@ import Exceptions.InvalidNodeAccessException;
 import GML.GMLReader;
 import GML.GraphMLExporter;
 import Graphs.IGraph;
-import Graphs.Memory.SimpleGraph;
+import Graphs.Memory.AdjListGraph;
 
 import java.util.*;
 import java.io.*;
@@ -12,7 +12,7 @@ import java.io.*;
 public class WalktrapTest {
     public static void main(String[] args) throws IOException, InvalidNodeAccessException {
 
-        IGraph<Integer> graph = new SimpleGraph<>();
+        IGraph<Integer> graph = new AdjListGraph<>();
         GMLReader.readGML(
             "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\football.gml",
             graph

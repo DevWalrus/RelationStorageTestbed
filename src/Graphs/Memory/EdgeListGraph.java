@@ -1,23 +1,19 @@
 package Graphs.Memory;
 
+import Exceptions.InvalidNodeAccessException;
 import Graphs.Edge;
 import Graphs.IGraph;
 
 import java.util.*;
 
 public class EdgeListGraph<T> implements IGraph<T> {
-    private final Set<T> nodes;
-    private final List<Edge<T>> edges;
+    private final List<T> nodes = new ArrayList<>();
+    private final List<Edge<T>> edges = new ArrayList<>();
     private static final Random rand = new Random(8675309);
 
-    public EdgeListGraph() {
-        this.nodes = new HashSet<>();
-        this.edges = new ArrayList<>();
-    }
-
     @Override
-    public Iterable<T> getNodes() {
-        return nodes;
+    public Iterator<T> getNodes() {
+        return nodes.iterator();
     }
 
     @Override
@@ -26,22 +22,25 @@ public class EdgeListGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void addRelationship(String label, T source, T target) {
-        // Ensure both nodes exist.
+    public void addRelationship(String label, T source, T target) throws InvalidNodeAccessException {
+        if (!nodes.contains(source)) {
+            throw new InvalidNodeAccessException("The source node is not in the graph.");
+        }
+        if (!nodes.contains(target)) {
+            throw new InvalidNodeAccessException("The target node is not in the graph.");
+        }
+
         addNode(source);
         addNode(target);
         edges.add(new Edge<>(source, target, label));
     }
 
     @Override
-    public Iterable<Edge<T>> getRelationships(T node) {
-        var neighbors = new HashSet<Edge<T>>();
-        for (var edge : edges) {
-            if (edge.getSource().equals(node)) {
-                neighbors.add(edge);
-            }
-        }
-        return neighbors;
+    public Iterator<Edge<T>> getRelationships(T node) {
+        return edges
+                .stream()
+                .filter(edge -> edge.getSource() == node)
+                .iterator();
     }
 
     @Override
@@ -55,7 +54,8 @@ public class EdgeListGraph<T> implements IGraph<T> {
 
     @Override
     public Edge<T> getRandomRelationship(T node) {
-        var candidateEdges = edges.stream().filter(edge -> edge.getSource() == node).toList();
+        var candidateEdges = new ArrayList<Edge<T>>();
+        getRelationships(node).forEachRemaining(candidateEdges::add);
         if (candidateEdges.isEmpty()) {
             return null;
         }

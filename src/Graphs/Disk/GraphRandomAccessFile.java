@@ -4,13 +4,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Files;
+import java.util.function.Supplier;
 
 /**
  * A wrapper around RandomAccessFile that reserves the first four bytes
  * to store a count (which can be set, retrieved, or incremented) and provides
  * methods to perform common random access operations.
  */
-public class GraphRandomAccessFile {
+public class GraphRandomAccessFile<T extends GraphRecord> {
     private RandomAccessFile raf;
     private final File rafFile;
 
@@ -104,6 +105,18 @@ public class GraphRandomAccessFile {
 
     // Delegate methods for additional RandomAccessFile functionality
 
+    public void writeElement(T element) throws IOException {
+        raf.write(element.toBytes());
+    }
+
+    public T readElement(Supplier<T> supplier) throws IOException {
+        T element = supplier.get();
+        byte[] data = new byte[element.getRecordSize()];
+        raf.readFully(data);
+        element.fromBytes(data);
+        return element;
+    }
+
     /**
      * Seeks to the specified position in the file.
      *
@@ -140,9 +153,9 @@ public class GraphRandomAccessFile {
      * @throws IOException if an I/O error occurs.
      */
     public void skipBytes(long size) throws IOException {
-        if (size > Integer.MAX_VALUE) throw new RuntimeException();
-        if (size < Integer.MIN_VALUE) throw new RuntimeException();
-        raf.skipBytes((int) size);
+        if (size > Integer.MAX_VALUE) throw new RuntimeException("The size you're trying to skip is bigger than an int.");
+        if (size < Integer.MIN_VALUE) throw new RuntimeException("The size you're trying to skip is smaller than an int.");
+        skipBytes((int) size);
     }
 
     /**
@@ -153,6 +166,36 @@ public class GraphRandomAccessFile {
      */
     public long getFilePointer() throws IOException {
         return raf.getFilePointer();
+    }
+
+    /**
+     * Writes an array of bytes to the file at the current file pointer.
+     *
+     * @param b the array of bytes to write.
+     * @throws IOException if an I/O error occurs.
+     */
+    public void write(byte[] b) throws IOException {
+        raf.write(b);
+    }
+
+    /**
+     * Writes a boolean to the file at the current file pointer.
+     *
+     * @param b the boolean to write.
+     * @throws IOException if an I/O error occurs.
+     */
+    public void writeBoolean(boolean b) throws IOException {
+        raf.writeBoolean(b);
+    }
+
+    /**
+     * Reads a boolean from the file at the current file pointer.
+     *
+     * @return the boolean read.
+     * @throws IOException if an I/O error occurs.
+     */
+    public boolean readBoolean() throws IOException {
+        return raf.readBoolean();
     }
 
     /**

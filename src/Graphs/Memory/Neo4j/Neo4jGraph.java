@@ -7,64 +7,85 @@ import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Neo4jGraph<T> implements IGraph<T> {
-    private final Set<T> nodes = new HashSet<>();
-    private final Map<T, Map<String, EdgeList<T>>> adjList = new HashMap<>();
-    private final Random rand = ThreadLocalRandom.current();
+    // Use a map to store Neo4jNodes keyed by the node value.
+    private final Map<T, Neo4jNode<T>> nodes = new HashMap<>();
+    private static final Random rand = new Random(8675309);
 
     @Override
-    public Iterable<T> getNodes() {
-        return nodes;
+    public Iterator<T> getNodes() {
+        return nodes.keySet().iterator();
     }
 
     @Override
-    public void addNode(T node) {
-        if (nodes.add(node)) {
-            adjList.put(node, new HashMap<>());
-        }
+    public void addNode(T nodeValue) {
+        // Only add a new node if it doesn't already exist.
+        nodes.computeIfAbsent(nodeValue, _ -> new Neo4jNode<>(nodeValue));
     }
 
     @Override
     public void addRelationship(String label, T source, T target) {
+        // Ensure both source and target nodes exist.
         addNode(source);
         addNode(target);
-        Map<String, EdgeList<T>> map = adjList.get(source);
-        EdgeList<T> list = map.computeIfAbsent(label, _ -> new EdgeList<>());
-        list.add(new Edge<>(source, target, label));
+
+        Neo4jNode<T> sourceNode = nodes.get(source);
+        Neo4jNode<T> targetNode = nodes.get(target);
+
+        // Create the edge and wrap it in an EdgeNode.
+        Edge<T> newEdge = new Edge<>(source, target, label);
+        EdgeNode<T> newEdgeNode = new EdgeNode<>(newEdge);
+
+        // Insert into the source's outgoing edge list.
+        newEdgeNode.outNext = sourceNode.getFirstOutgoing();
+        if (sourceNode.getFirstOutgoing() != null) {
+            sourceNode.getFirstOutgoing().outPrev = newEdgeNode;
+        }
+        sourceNode.setFirstOutgoing(newEdgeNode);
+
+        // Insert into the target's incoming edge list.
+        newEdgeNode.inNext = targetNode.getFirstIncoming();
+        if (targetNode.getFirstIncoming() != null) {
+            targetNode.getFirstIncoming().inPrev = newEdgeNode;
+        }
+        targetNode.setFirstIncoming(newEdgeNode);
     }
 
     @Override
-    public Iterable<Edge<T>> getRelationships(T node) {
-        var neighbors = new HashSet<Edge<T>>();
-        var map = adjList.get(node);
-        if (map != null) {
-            for (EdgeList<T> list : map.values()) {
-                for (Edge<T> edge : list) {
-                    neighbors.add(edge);
-                }
-            }
+    public Iterator<Edge<T>> getRelationships(T nodeValue) {
+        Neo4jNode<T> memNode = nodes.get(nodeValue);
+        if (memNode == null) {
+            return Collections.emptyIterator();
         }
-        return neighbors;
+        // Here we collect both outgoing and incoming relationships.
+        Set<Edge<T>> relationships = new HashSet<>();
+        for (EdgeNode<T> curr = memNode.getFirstOutgoing(); curr != null; curr = curr.outNext) {
+            relationships.add(curr.edge);
+        }
+        return relationships.iterator();
     }
 
     @Override
     public T getRandomNode() {
         if (nodes.isEmpty()) return null;
-        int randomIndex = rand.nextInt(nodes.size());
-        return new ArrayList<>(nodes).get(randomIndex);
+        List<T> keys = new ArrayList<>(nodes.keySet());
+        int randomIndex = rand.nextInt(keys.size());
+        return keys.get(randomIndex);
     }
 
     @Override
-    public Edge<T> getRandomRelationship(T node) {
-        Map<String, EdgeList<T>> map = adjList.get(node);
-        if (map == null) return null;
-        Edge<T> chosenEdge = null;
+    public Edge<T> getRandomRelationship(T nodeValue) {
+        Neo4jNode<T> memNode = nodes.get(nodeValue);
+        if (memNode == null) {
+            return null;
+        }
+        // Use reservoir sampling over both outgoing and incoming edges.
         int count = 0;
-        for (EdgeList<T> list : map.values()) {
-            for (Edge<T> edge : list) {
-                count++;
-                if (rand.nextInt(count) == 0) {
-                    chosenEdge = edge;
-                }
+        Edge<T> chosenEdge = null;
+
+        for (EdgeNode<T> curr = memNode.getFirstOutgoing(); curr != null; curr = curr.outNext) {
+            count++;
+            if (rand.nextInt(count) == 0) {
+                chosenEdge = curr.edge;
             }
         }
         return chosenEdge;
@@ -73,7 +94,6 @@ public class Neo4jGraph<T> implements IGraph<T> {
     @Override
     public void clear() {
         nodes.clear();
-        adjList.clear();
     }
 
     @Override

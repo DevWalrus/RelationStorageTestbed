@@ -30,7 +30,7 @@ public class TabImporter {
                 graph.addNode(fromId);
                 graph.addNode(toId);
                 graph.addRelationship("default", fromId, toId);
-                if (!directed) graph.addRelationship("default", fromId, toId);
+                if (!directed) graph.addRelationship("default", toId, fromId);
             } catch (NumberFormatException e) {
                 System.err.println("Skipping invalid line: " + line);
             } catch (InvalidNodeAccessException e) {

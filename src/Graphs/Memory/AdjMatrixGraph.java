@@ -1,5 +1,6 @@
 package Graphs.Memory;
 
+import Exceptions.InvalidNodeAccessException;
 import Graphs.Edge;
 import Graphs.IGraph;
 
@@ -12,8 +13,8 @@ public class AdjMatrixGraph<T> implements IGraph<T> {
     protected static final Random rand = new Random(8675309);
 
     @Override
-    public List<T> getNodes() {
-        return nodes;
+    public Iterator<T> getNodes() {
+        return nodes.iterator();
     }
 
     @Override
@@ -35,9 +36,13 @@ public class AdjMatrixGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public void addRelationship(String label, T source, T target) {
-        if (!nodeIndex.containsKey(source)) addNode(source);
-        if (!nodeIndex.containsKey(target)) addNode(target);
+    public void addRelationship(String label, T source, T target) throws InvalidNodeAccessException {
+        if (!nodeIndex.containsKey(source)) {
+            throw new InvalidNodeAccessException("The target node is not in the graph.");
+        }
+        if (!nodeIndex.containsKey(target)) {
+            throw new InvalidNodeAccessException("The target node is not in the graph.");
+        }
         int srcIdx = nodeIndex.get(source);
         int tgtIdx = nodeIndex.get(target);
         Edge<T> newEdge = new Edge<>(source, target, label);
@@ -45,9 +50,9 @@ public class AdjMatrixGraph<T> implements IGraph<T> {
     }
 
     @Override
-    public Iterable<Edge<T>> getRelationships(T node) {
+    public Iterator<Edge<T>> getRelationships(T node) {
         Integer srcIdx = nodeIndex.get(node);
-        if (srcIdx == null) return Collections.emptyList();
+        if (srcIdx == null) return Collections.emptyIterator();
 
         var neighbors = new ArrayList<Edge<T>>();
 
@@ -55,7 +60,7 @@ public class AdjMatrixGraph<T> implements IGraph<T> {
         for (var edges : row) {
             neighbors.addAll(edges);
         }
-        return neighbors;
+        return neighbors.iterator();
     }
 
     @Override

@@ -36,10 +36,9 @@ public class EdgeListRelationshipIterator implements Iterator<Edge<Integer>> {
             // Each relationship entry consists of two ints and a UTF string.
             int s = raf.readInt();
             int t = raf.readInt();
-            String label = raf.readUTF();
             currentRelationshipIndex++;
             if (node == s) {
-                nextEdge = new Edge<>(s, t, label);
+                nextEdge = new Edge<>(s, t, "default");
             }
         }
     }

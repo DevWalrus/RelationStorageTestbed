@@ -35,13 +35,17 @@ public class Walktrap<T> {
 
     public WalktrapResult run() throws InvalidNodeAccessException, IOException {
         if (addSelfEdges) {
-            for (T v : graph.getNodes()) {
+            for (Iterator<T> it = graph.getNodes(); it.hasNext(); ) {
+                T v = it.next();
                 graph.addRelationship("self", v, v);
             }
         }
 
         Set<T> nodes = new HashSet<>();
-        graph.getNodes().forEach(nodes::add);
+        for (Iterator<T> it = graph.getNodes(); it.hasNext(); ) {
+            T v = it.next();
+            nodes.add(v);
+        }
         N = nodes.size();
         Map<T, Integer> nodeToIndex = new HashMap<>();
         int idx = 0;
@@ -53,7 +57,8 @@ public class Walktrap<T> {
         A = new double[N][N];
         for (T u : nodes) {
             int i = nodeToIndex.get(u);
-            for (Edge<T> v : graph.getRelationships(u)) {
+            for (Iterator<Edge<T>> it = graph.getRelationships(u); it.hasNext(); ) {
+                Edge<T> v = it.next();
                 int j = nodeToIndex.get(v.getTarget());
                 A[i][j] = 1.0;
             }

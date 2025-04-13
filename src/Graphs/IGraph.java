@@ -3,6 +3,7 @@ package Graphs;
 import Exceptions.InvalidNodeAccessException;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Interface representing a generic graph.
@@ -16,7 +17,7 @@ public interface IGraph<T> extends AutoCloseable {
      *
      * @return an iterable of all nodes.
      */
-    Iterable<T> getNodes();
+    Iterator<T> getNodes() throws IOException;
 
     /**
      * Adds a node to the graph.
@@ -42,7 +43,7 @@ public interface IGraph<T> extends AutoCloseable {
      * @param node the node whose neighbors are to be returned.
      * @return an iterable of neighboring nodes.
      */
-    Iterable<Edge<T>> getRelationships(T node) throws InvalidNodeAccessException, IOException;
+    Iterator<Edge<T>> getRelationships(T node) throws InvalidNodeAccessException, IOException;
 
 
     /**

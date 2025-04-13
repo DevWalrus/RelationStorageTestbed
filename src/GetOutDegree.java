@@ -1,28 +1,34 @@
 import Exceptions.InvalidNodeAccessException;
 import GML.TabImporter;
+import Graphs.Edge;
 import Graphs.IGraph;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GetOutDegree {
     private static final String BASE_PATH = "C:\\Users\\Clinten\\Documents\\Courses\\2245\\Capstone\\RelationStorageTestbed\\datasets\\";
-    private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
-    private static final String EU_OUT_DEG_LOC = BASE_PATH + "email-Eu-core.outdeg.txt";
-    private static final String EU_OUT_DEG_FULL_LOC = BASE_PATH + "email-Eu-core.outdeg.full.txt";
+//    private static final String EU_GML_LOC = BASE_PATH + "email-Eu-core.txt";
+//    private static final String EU_OUT_DEG_LOC = BASE_PATH + "email-Eu-core.outdeg.txt";
+//    private static final String EU_OUT_DEG_FULL_LOC = BASE_PATH + "email-Eu-core.outdeg.full.txt";
+//    private static final String EU_GML_LOC = BASE_PATH + "test-ds.txt";
+//    private static final String EU_OUT_DEG_LOC = BASE_PATH + "test-ds.outdeg.txt";
+//    private static final String EU_OUT_DEG_FULL_LOC = BASE_PATH + "test-ds.outdeg.full.txt";
+    private static final String EU_GML_LOC = BASE_PATH + "com-dblp.ungraph.txt";
+    private static final String EU_OUT_DEG_LOC = BASE_PATH + "com-dblp.ungraph.outdeg.txt";
+    private static final String EU_OUT_DEG_FULL_LOC = BASE_PATH + "com-dblp.ungraph.outdeg.full.txt";
 
     public static void main(String[] args) throws IOException, InvalidNodeAccessException {
         IGraph<Integer> graph = GraphFactory.createGraph(GraphType.SIMPLE);
         TabImporter.readGraph(EU_GML_LOC, graph, true);
         var outDegrees = new HashMap<Integer, Integer>();
-        for (var node : graph.getNodes()) {
+        for (Iterator<Integer> it = graph.getNodes(); it.hasNext(); ) {
+            var node = it.next();
             var r_cnt = 0;
-            for (Graphs.Edge<Integer> _ : graph.getRelationships(node)) {
+            for (Iterator<Edge<Integer>> iter = graph.getRelationships(node); iter.hasNext(); ) {
+                Edge<Integer> _ = iter.next();
                 r_cnt++;
             }
             outDegrees.put(node, r_cnt);
