@@ -133,7 +133,7 @@ fig1, ax1 = plt.subplots(figsize=(12, 8))
 ax1_twin = ax1.twinx()
 
 # Plot out degrees on left y-axis
-ax1.bar(x, out_degrees, color="lightblue")
+ax1.bar(x, out_degrees, color="lightblue", label="Out Degree")
 ax1.set_ylabel("Out Degree")
 ax1.set_ylim(bottom=0)
 ax1.set_xticks([])
@@ -148,7 +148,9 @@ for test_name_key, times in non_disk_tests.items():
     else:
         ax1_twin.plot(x, smoothed_times, color=color)
 if not poster:
-    ax1_twin.legend()
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax1_twin.get_legend_handles_labels()
+    ax1.legend(handles1 + handles2, labels1 + labels2)
 ax1_twin.set_ylabel("Test Times (nanoseconds)")
 ax1_twin.set_ylim(bottom=0)
 
@@ -161,7 +163,7 @@ fig2, ax2 = plt.subplots(figsize=(12, 8))
 ax2_twin = ax2.twinx()
 
 # Plot out degrees on left y-axis
-ax2.bar(x, out_degrees, color="lightblue")
+ax2.bar(x, out_degrees, color="lightblue", label="Out Degree")
 ax2.set_ylabel("Out Degree")
 ax2.set_ylim(bottom=0)
 ax2.set_xticks([])
@@ -176,9 +178,10 @@ for test_name_key, times in disk_tests.items():
     else:
         ax2_twin.plot(x, smoothed_times, color=color)
 if not poster:
-    ax2_twin.legend()
+    handles1, labels1 = ax2.get_legend_handles_labels()
+    handles2, labels2 = ax2_twin.get_legend_handles_labels()
+    ax2.legend(handles1 + handles2, labels1 + labels2)
 ax2_twin.set_ylabel("Test Times (nanoseconds)")
-# Uncomment the following line if you wish to set the y-axis to a logarithmic scale:
 ax2_twin.set_yscale("log")
 ax2_twin.set_ylim(bottom=50)
 
