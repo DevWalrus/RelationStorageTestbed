@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-import sys
 import argparse
 
 parser = argparse.ArgumentParser()
@@ -35,6 +34,8 @@ def generate_file_paths(test_name):
 OUT_DEG, TEST_RESULTS = generate_file_paths(test_name)
 
 OUTPUT_SUFFIX = '.big.png' if poster else '.png'
+
+DPI = 900 if poster else 300
 
 def smooth(data, window_size=10):
     """Simple moving average smoothing using convolution."""
@@ -154,7 +155,7 @@ if not poster:
 ax1_twin.set_ylabel("Test Times (nanoseconds)")
 ax1_twin.set_ylim(bottom=0)
 
-fig1.savefig("non_disk_tests" + OUTPUT_SUFFIX, dpi=900, bbox_inches='tight', pad_inches=0)
+fig1.savefig(test_name + "_non_disk_tests" + OUTPUT_SUFFIX, dpi=DPI, bbox_inches='tight', pad_inches=0)
 
 # ----------------------
 # Figure 2: _DISK Tests (Log Scale)
@@ -185,7 +186,7 @@ ax2_twin.set_ylabel("Test Times (nanoseconds)")
 ax2_twin.set_yscale("log")
 ax2_twin.set_ylim(bottom=50)
 
-fig2.savefig("disk_tests" + OUTPUT_SUFFIX, dpi=900, bbox_inches='tight', pad_inches=0)
+fig2.savefig(test_name + "_disk_tests" + OUTPUT_SUFFIX, dpi=DPI, bbox_inches='tight', pad_inches=0)
 
 # Finally, display both figures (if desired)
 plt.show()
