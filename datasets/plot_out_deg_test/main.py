@@ -2,9 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import sys
+import argparse
 
-# ----- Set Global Font Size -----
-plt.rcParams.update({'font.size': 30})  # Ensures a large font for all text elements
+parser = argparse.ArgumentParser()
+parser.add_argument("test_name", nargs="?", default="com-dblp.ungraph", help="Test name")
+parser.add_argument("-p", "--poster", action="store_true", help="Enable poster mode: large font size and no legends")
+args = parser.parse_args()
+test_name = args.test_name
+poster = args.poster
+
+if poster:
+    plt.rcParams.update({'font.size': 30})  # Large font size for poster mode
+else:
+    plt.rcParams.update({'font.size': 20})  # Normal font size
 
 def generate_file_paths(test_name):
     """
@@ -21,14 +31,10 @@ def generate_file_paths(test_name):
     test_results_path = os.path.join(base_dir, f"{test_name}.outdeg.times.txt")
     return out_deg_path, test_results_path
 
-# Get test name from command line arguments if provided; otherwise use a default
-if len(sys.argv) > 1:
-    test_name = sys.argv[1]
-else:
-    test_name = "com-dblp.ungraph"  # Default test name
-
 # Generate file paths using the provided test name
 OUT_DEG, TEST_RESULTS = generate_file_paths(test_name)
+
+OUTPUT_SUFFIX = '.big.png' if poster else '.png'
 
 def smooth(data, window_size=10):
     """Simple moving average smoothing using convolution."""
@@ -137,11 +143,16 @@ window_size = 10  # adjust smoothing window size as needed
 for test_name_key, times in non_disk_tests.items():
     smoothed_times = smooth(times, window_size=window_size)
     color = color_map.get(test_name_key, default_color)
-    ax1_twin.plot(x, smoothed_times, color=color)
+    if not poster:
+        ax1_twin.plot(x, smoothed_times, color=color, label=test_name_key)
+    else:
+        ax1_twin.plot(x, smoothed_times, color=color)
+if not poster:
+    ax1_twin.legend()
 ax1_twin.set_ylabel("Test Times (nanoseconds)")
 ax1_twin.set_ylim(bottom=0)
 
-fig1.savefig("non_disk_tests.png", dpi=900, bbox_inches='tight', pad_inches=0)
+fig1.savefig("non_disk_tests" + OUTPUT_SUFFIX, dpi=900, bbox_inches='tight', pad_inches=0)
 
 # ----------------------
 # Figure 2: _DISK Tests (Log Scale)
@@ -160,13 +171,18 @@ window_size = 1  # adjust smoothing window size as needed for _DISK tests
 for test_name_key, times in disk_tests.items():
     smoothed_times = smooth(times, window_size=window_size)
     color = color_map.get(test_name_key, default_color)
-    ax2_twin.plot(x, smoothed_times, color=color)
+    if not poster:
+        ax2_twin.plot(x, smoothed_times, color=color, label=test_name_key)
+    else:
+        ax2_twin.plot(x, smoothed_times, color=color)
+if not poster:
+    ax2_twin.legend()
 ax2_twin.set_ylabel("Test Times (nanoseconds)")
 # Uncomment the following line if you wish to set the y-axis to a logarithmic scale:
 ax2_twin.set_yscale("log")
 ax2_twin.set_ylim(bottom=50)
 
-fig2.savefig("disk_tests.png", dpi=900, bbox_inches='tight', pad_inches=0)
+fig2.savefig("disk_tests" + OUTPUT_SUFFIX, dpi=900, bbox_inches='tight', pad_inches=0)
 
 # Finally, display both figures (if desired)
 plt.show()
