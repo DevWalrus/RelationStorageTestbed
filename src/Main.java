@@ -13,10 +13,10 @@ public class Main {
         for (GraphType ty : List.of(
                 GraphType.NEO4J,
                 GraphType.ADJ_MATRIX,
-                GraphType.SIMPLE,
+                GraphType.ADJ_LIST,
                 GraphType.EDGE_LIST,
                 GraphType.NEO4J_DISK,
-                GraphType.LINKED_LIST_DISK,
+                GraphType.ADJ_LIST_DISK,
                 GraphType.EDGE_LIST_DISK
         )) {
             for (int i = 0; i < RUN_CNT; i++) {

@@ -1,11 +1,11 @@
-package Graphs.Disk.LinkedList;
+package Graphs.Disk.AdjacencyList;
 
 import Graphs.Disk.Constants;
 import Graphs.Disk.GraphRecord;
 
 import java.nio.ByteBuffer;
 
-public class LinkedListNode implements GraphRecord {
+public class AdjacencyListNode implements GraphRecord {
 
     public static final long RECORD_SIZE = (
         Constants.BOOL_SIZE +   // In Use
@@ -18,11 +18,11 @@ public class LinkedListNode implements GraphRecord {
     private long neighborPointer; // pointer for incoming relationships
 
     // Default constructor initializes a blank (unused) node.
-    public LinkedListNode() {
+    public AdjacencyListNode() {
         this(false, -1, -1);
     }
 
-    public LinkedListNode(boolean inUse, int nodeId, long neighborPointer) {
+    public AdjacencyListNode(boolean inUse, int nodeId, long neighborPointer) {
         this.inUse = inUse;
         this.nodeId = nodeId;
         this.neighborPointer = neighborPointer;

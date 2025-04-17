@@ -1,8 +1,7 @@
 package Graphs.Disk.Iterators;
 
 import Graphs.Disk.GraphRandomAccessFile;
-import Graphs.Disk.LinkedList.LinkedListEdge;
-import Graphs.Disk.LinkedList.LinkedListNode;
+import Graphs.Disk.AdjacencyList.AdjacencyListEdge;
 import Graphs.Edge;
 
 import java.io.IOException;
@@ -11,10 +10,10 @@ import java.util.NoSuchElementException;
 
 public class LinkedListRelationshipIterator implements Iterator<Edge<Integer>> {
     private final int node;
-    private final GraphRandomAccessFile<LinkedListEdge> raf;
+    private final GraphRandomAccessFile<AdjacencyListEdge> raf;
     private long nextPos;
 
-    public LinkedListRelationshipIterator(int node, long startingPos, GraphRandomAccessFile<LinkedListEdge> raf) throws IOException {
+    public LinkedListRelationshipIterator(int node, long startingPos, GraphRandomAccessFile<AdjacencyListEdge> raf) throws IOException {
         this.node = node;
         this.raf = raf;
         this.nextPos = startingPos;
@@ -32,7 +31,7 @@ public class LinkedListRelationshipIterator implements Iterator<Edge<Integer>> {
         }
         try {
             raf.seek(nextPos);
-            LinkedListEdge edgeElem = raf.readElement(LinkedListEdge::new);
+            AdjacencyListEdge edgeElem = raf.readElement(AdjacencyListEdge::new);
             nextPos = edgeElem.getNextNeighborPointer();
             return new Edge<>(node, edgeElem.getTargetNode(), "default");
         } catch (IOException e) {

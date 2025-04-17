@@ -1,11 +1,11 @@
-package Graphs.Disk.LinkedList;
+package Graphs.Disk.AdjacencyList;
 
 import Graphs.Disk.Constants;
 import Graphs.Disk.GraphRecord;
 
 import java.nio.ByteBuffer;
 
-public class LinkedListEdge implements GraphRecord {
+public class AdjacencyListEdge implements GraphRecord {
     public static final long RECORD_SIZE = (
         Constants.INT_SIZE +    // Target Node
         Constants.LONG_SIZE     // The next neighbor
@@ -15,11 +15,11 @@ public class LinkedListEdge implements GraphRecord {
     private int targetNode;
 
     // Constructors
-    public LinkedListEdge() {
+    public AdjacencyListEdge() {
         this(-1, -1);
     }
 
-    public LinkedListEdge(int target, long nextNeighborPointer) {
+    public AdjacencyListEdge(int target, long nextNeighborPointer) {
         this.nextNeighborPointer = nextNeighborPointer;
         this.targetNode = target;
     }

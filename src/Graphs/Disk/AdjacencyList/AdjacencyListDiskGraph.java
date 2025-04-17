@@ -1,4 +1,4 @@
-package Graphs.Disk.LinkedList;
+package Graphs.Disk.AdjacencyList;
 
 import Exceptions.InvalidNodeAccessException;
 import Graphs.Disk.Constants;
@@ -14,16 +14,16 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
-    private final GraphRandomAccessFile<LinkedListNode> nodesRaf;
-    private final GraphRandomAccessFile<LinkedListEdge> edgesRaf;
+public class AdjacencyListDiskGraph implements IGraph<Integer>, AutoCloseable {
+    private final GraphRandomAccessFile<AdjacencyListNode> nodesRaf;
+    private final GraphRandomAccessFile<AdjacencyListEdge> edgesRaf;
     private static final Random rand = ThreadLocalRandom.current();
 
-    public LinkedListDiskGraph(String directoryPath) throws IOException {
+    public AdjacencyListDiskGraph(String directoryPath) throws IOException {
         this(directoryPath, "nodes.dat", "edges.dat");
     }
 
-    public LinkedListDiskGraph(String directoryPath, String nodesFileName, String edgesFileName) throws IOException {
+    public AdjacencyListDiskGraph(String directoryPath, String nodesFileName, String edgesFileName) throws IOException {
         File dir = new File(directoryPath);
         File nodesFile = new File(dir, nodesFileName);
         nodesRaf = new GraphRandomAccessFile<>(nodesFile);
@@ -32,13 +32,13 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
         edgesRaf = new GraphRandomAccessFile<>(edgesFile);
     }
 
-    private LinkedListNode getNode(Integer node) throws IOException {
-        long offset = Constants.INT_SIZE + (node * LinkedListNode.RECORD_SIZE);
+    private AdjacencyListNode getNode(Integer node) throws IOException {
+        long offset = Constants.INT_SIZE + (node * AdjacencyListNode.RECORD_SIZE);
         if (offset >= nodesRaf.length()) {
             return null;
         }
         nodesRaf.seek(offset);
-        LinkedListNode nodeElem = nodesRaf.readElement(LinkedListNode::new);
+        AdjacencyListNode nodeElem = nodesRaf.readElement(AdjacencyListNode::new);
         if (nodeElem.isInUse()) {
             return nodeElem;
         }
@@ -50,14 +50,14 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
     }
 
     private long getNeighborPointer(Integer node) throws IOException {
-        long offset = Constants.INT_SIZE + (node * LinkedListNode.RECORD_SIZE);
+        long offset = Constants.INT_SIZE + (node * AdjacencyListNode.RECORD_SIZE);
         nodesRaf.seek(offset);
-        return nodesRaf.readElement(LinkedListNode::new).getNeighborPointer();
+        return nodesRaf.readElement(AdjacencyListNode::new).getNeighborPointer();
     }
 
-    private void updateNeighborPointer(LinkedListNode source, long newNeighborPos) throws IOException {
+    private void updateNeighborPointer(AdjacencyListNode source, long newNeighborPos) throws IOException {
         source.setNeighborPointer(newNeighborPos);
-        long offset = Constants.INT_SIZE + (source.getNodeId() * LinkedListNode.RECORD_SIZE);
+        long offset = Constants.INT_SIZE + (source.getNodeId() * AdjacencyListNode.RECORD_SIZE);
         nodesRaf.seek(offset);
         nodesRaf.writeElement(source);
     }
@@ -67,8 +67,8 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
         if (nodeExists(node)) {
             return;
         }
-        long offset = Constants.INT_SIZE + (node * LinkedListNode.RECORD_SIZE);
-        LinkedListNode nodeElem = new LinkedListNode(true, node, -1);
+        long offset = Constants.INT_SIZE + (node * AdjacencyListNode.RECORD_SIZE);
+        AdjacencyListNode nodeElem = new AdjacencyListNode(true, node, -1);
         nodesRaf.seek(offset);
         nodesRaf.writeElement(nodeElem);
         nodesRaf.incCount();
@@ -86,13 +86,13 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
             throw new IOException("No nodes available in the graph.");
         }
         int randomIndex = rand.nextInt(count);
-        long offset = Constants.INT_SIZE + (randomIndex * LinkedListNode.RECORD_SIZE);
+        long offset = Constants.INT_SIZE + (randomIndex * AdjacencyListNode.RECORD_SIZE);
         nodesRaf.seek(offset);
         boolean inUse = nodesRaf.readBoolean();
         while (!inUse) {
             randomIndex++; // rand wasn't active, inc until it is
 
-            offset = Constants.INT_SIZE + (randomIndex * LinkedListNode.RECORD_SIZE);
+            offset = Constants.INT_SIZE + (randomIndex * AdjacencyListNode.RECORD_SIZE);
             if (offset > nodesRaf.length()) offset = Constants.INT_SIZE; // Wrap around if needed
             nodesRaf.seek(offset);
 
@@ -103,9 +103,9 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
 
     @Override
     public void addRelationship(String label, Integer source, Integer target) throws InvalidNodeAccessException, IOException {
-        long offset = Constants.INT_SIZE + (source * LinkedListNode.RECORD_SIZE);
+        long offset = Constants.INT_SIZE + (source * AdjacencyListNode.RECORD_SIZE);
         nodesRaf.seek(offset);
-        LinkedListNode sourceElem = nodesRaf.readElement(LinkedListNode::new);
+        AdjacencyListNode sourceElem = nodesRaf.readElement(AdjacencyListNode::new);
         if (sourceElem == null) {
             throw new InvalidNodeAccessException("The source node is not in the graph.");
         }
@@ -113,7 +113,7 @@ public class LinkedListDiskGraph implements IGraph<Integer>, AutoCloseable {
             throw new InvalidNodeAccessException("The target node is not in the graph.");
         }
 
-        LinkedListEdge edgeElem = new LinkedListEdge(target, sourceElem.getNeighborPointer());
+        AdjacencyListEdge edgeElem = new AdjacencyListEdge(target, sourceElem.getNeighborPointer());
 
         edgesRaf.seekTheEnd();
         var addedFP = edgesRaf.getFilePointer();

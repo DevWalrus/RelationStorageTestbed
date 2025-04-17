@@ -21,7 +21,7 @@ public class GetOutDegree {
     private static final String EU_OUT_DEG_FULL_LOC = BASE_PATH + "com-dblp.ungraph.outdeg.full.txt";
 
     public static void main(String[] args) throws IOException, InvalidNodeAccessException {
-        IGraph<Integer> graph = GraphFactory.createGraph(GraphType.SIMPLE);
+        IGraph<Integer> graph = GraphFactory.createGraph(GraphType.ADJ_LIST);
         TabImporter.readGraph(EU_GML_LOC, graph, true);
         var outDegrees = new HashMap<Integer, Integer>();
         for (Iterator<Integer> it = graph.getNodes(); it.hasNext(); ) {
