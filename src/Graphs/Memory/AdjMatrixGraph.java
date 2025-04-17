@@ -56,8 +56,7 @@ public class AdjMatrixGraph<T> implements IGraph<T> {
 
         var neighbors = new ArrayList<Edge<T>>();
 
-        List<Set<Edge<T>>> row = matrix.get(srcIdx);
-        for (var edges : row) {
+        for (var edges : matrix.get(srcIdx)) {
             neighbors.addAll(edges);
         }
         return neighbors.iterator();
